@@ -1,0 +1,18 @@
+Doctor: Namaste. Aiye baitho. Aapka naam kya hai?
+Patient: Namaste doctor sahab. Mera naam Ramesh Verma hai.
+Doctor: Theek hai Ramesh ji. Kya problem hai aaj?
+Patient: Doctor sahab, teen din se bohot tez bukhar hai. Kal raat temperature 103 tha.
+Doctor: Aur kya symptoms hain? Sir dard, badan dard?
+Patient: Haan doctor, bohot badan dard hai. Aur naak bhi beh rahi hai. Khana bhi nahi kha pa raha hun.
+Doctor: Khansi bhi hai kya?
+Patient: Thodi si hai. Sukhi khansi.
+Nurse: Doctor sahab, is patient ki temperature abhi 101.5 hai. BP 120 over 80 normal hai.
+Doctor: Theek hai. Dekho Ramesh ji, yeh viral fever lagta hai. Aajkal bahut chal raha hai. Ghabrana nahi hai.
+Patient: Doctor, koi serious problem toh nahi hai na?
+Doctor: Nahi nahi, bilkul nahi. Main aapko kuch medicine likhunga. Paracetamol lete rehna har chhe ghante mein. Pani khub peena.
+Patient: Theek hai doctor. Kaam pe ja sakta hun kya?
+Doctor: Yeh do din aaram karo. Bahut zaruri hai rest. Agar teen din mein bukhar nahi jaata, toh wapas aana.
+Patient: Haan doctor, aaunga. Koi test karna padega?
+Doctor: Abhi zaruorat nahi. Agar bukhar zyada dino tak rahe toh blood test karwayenge. Pehle dawai lo, aaram karo.
+Patient: Bahut shukriya doctor sahab.
+Doctor: Khayal rakhna apna. Jaldi theek ho jaoge.

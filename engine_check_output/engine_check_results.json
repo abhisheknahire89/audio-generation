@@ -1,0 +1,15 @@
+{
+  "parler": {
+    "success": false,
+    "times": [],
+    "error": "You are trying to access a gated repo.\nMake sure to have access to it at https://huggingface.co/ai4bharat/indic-parler-tts.\n403 Client Error. (Request ID: Root=1-6a3cf7b9-017da3b05490bc6050abc84f;cc72cfec-4461-4ee6-a010-12b6a1d8dee4)\n\nCannot access gated repo for url https://huggingface.co/ai4bharat/indic-parler-tts/resolve/main/config.json.\nAccess to model ai4bharat/indic-parler-tts is restricted and you are not in the authorized list. Visit https://huggingface.co/ai4bharat/indic-parler-tts to ask for access.",
+    "files": []
+  },
+  "indicf5": {
+    "success": false,
+    "times": [],
+    "error": "You are trying to access a gated repo.\nMake sure to have access to it at https://huggingface.co/ai4bharat/IndicF5.\n403 Client Error. (Request ID: Root=1-6a3cf7ba-65a40658223ba9ae077a88e1;583ed011-ec2d-4ac7-bf30-5232f94562d5)\n\nCannot access gated repo for url https://huggingface.co/ai4bharat/IndicF5/resolve/main/config.json.\nAccess to model ai4bharat/IndicF5 is restricted and you are not in the authorized list. Visit https://huggingface.co/ai4bharat/IndicF5 to ask for access.",
+    "files": []
+  },
+  "device": "mps"
+}

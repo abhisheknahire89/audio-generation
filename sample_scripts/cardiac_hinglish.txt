@@ -1,0 +1,25 @@
+Doctor: Please come in. Sir, what's your name and age?
+Patient: Mehta. Suresh Mehta. 52 years old.
+Doctor: Okay Mr. Mehta. What brings you here today? Kya problem hai?
+Patient: Doctor, subah se chest mein dard ho raha hai. Yahan se yahan tak. Thoda left side mein zyada.
+Doctor: Kab se exactly? Kitne baje start hua?
+Patient: Subah around 7 baje. Pehle socha gas hai. But ab bhi hai, thoda thoda.
+Doctor: Breathlessness bhi hai kya? Saans lene mein takleef?
+Patient: Thodi thodi. Aur pasiina bhi aa raha tha subah. Cold sweat.
+Doctor: Okay, this is important. Nurse, ECG karo immediately. Aur oxygen bhi lagao.
+Nurse: Ji doctor, abhi karta hun.
+Doctor: Mr. Mehta, aapko koi heart ki problem pehle hui hai?
+Patient: Nahi doctor, koi nahi. Blood pressure thoda high rehta hai. Pill leta hun uske liye.
+Doctor: Smoking karte ho?
+Patient: Haan, around 10 cigarettes a day. Past 25 saal se.
+Doctor: Okay. Yeh symptoms — left side chest pain, sweating, breathlessness — yeh serious ho sakta hai. Hum ECG dekhenge. Possibly heart related hai.
+Patient: Doctor, heart attack toh nahi hai na?
+Doctor: Abhi hum check karenge. Ghabrao mat, aap safe ho. Aspirin lete ho ghar mein?
+Patient: Haan, aspirin 75 mg leta hun daily.
+Doctor: Good. ECG aa gaya? Nurse?
+Nurse: Ji doctor, yeh raha.
+Doctor: Hmm. Main troponin blood test bhi order kar raha hun. Mr. Mehta, aapko aaj hospital mein ruk na padega. Cardiology ke doctor se consult karwana padega.
+Patient: Itna serious hai doctor?
+Doctor: Precaution ke liye. Akele mat jao, koi family member hai bahar?
+Patient: Haan, meri wife hai.
+Doctor: Unhe andar bulao. Aur chinta mat karo, hum sab handle kar lenge.

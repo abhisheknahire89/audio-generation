@@ -1,0 +1,19 @@
+Doctor: Good morning. Please sit down. So what brings you here today?
+Patient: Good morning doctor. Actually mujhe pichle kuch dino se bohot thakaan ho rahi hai. Aur baari baari pyaas bhi lag rahi hai zyada.
+Relative: Doctor, inke saath main hun, inki beti. Actually, humne ghar pe sugar check kiya tha, 280 aa raha tha fasting mein.
+Doctor: Okay, that is quite high. Pehle kabhi sugar test hua tha?
+Patient: Nahi doctor, pehle kabhi nahi hua. Lekin doctor ne bola tha family history hai — meri maa ko tha.
+Doctor: Right. Aur symptoms kab se hain exactly?
+Patient: Koi ek mahine se. Pehle socha thakaan hai kaam ki wajah se. But phir zyada ho gaya. Weight bhi thoda kam hua hai.
+Relative: Aur bathroom bhi zyada jaate hain raat ko. Maine notice kiya.
+Doctor: Theek hai. Yeh sab diabetes ke classic symptoms hain. Main aapka HbA1c test aur fasting blood sugar order karta hun. Aaj khali pet aaye ho?
+Patient: Haan doctor, subah se kuch nahi khaya.
+Doctor: Perfect. Nurse, blood sample lena in ka. Lipid profile bhi add karo.
+Nurse: Ji doctor, abhi le rahi hun.
+Doctor: In the meantime, kuch lifestyle changes immediately start karo. Sugar wali cheezein bilkul band. White rice, maida — kam karo. Roz subah 30 minute walk zaruri hai.
+Patient: Doctor, main daily walk karta hun thodi.
+Doctor: Good, usse 30 se 45 minute karo. Aur report aane ke baad main aapka proper treatment plan banaunga. Shayad medication bhi start karni padegi.
+Relative: Doctor kya yeh control ho sakta hai? Matlab zyada serious toh nahi hai?
+Doctor: Type 2 diabetes is very manageable. Early stage mein hain abhi, so with proper diet, exercise, and medication, we can control it very well. Ghabrao mat. Reports 2 din mein aayengi. Tab wapas aana.
+Patient: Theek hai doctor. Bahut dhanyawaad.
+Doctor: Welcome. Take care of yourself.

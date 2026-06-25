@@ -1,0 +1,24 @@
+Doctor: Aiye. Yeh bachcha kitne saal ka hai?
+Patient: Doctor ji, yeh mera beta Arjun hai. Paanch saal ka hai. Kal raat se bukhaar hai.
+Doctor: Temperature kitna tha?
+Patient: Subah 102 tha. Dawa diya paracetamol, thoda utra, phir wapas aa gaya.
+Doctor: Rota raha raat ko? Kuch khaya piya?
+Patient: Nahi doctor, kuch khaya nahi. Doodh bhi nahi piya. Aur bohot chidchida ho raha tha.
+Nurse: Doctor, I have taken temperature. It is 101.8 degrees Fahrenheit. Weight 18 kilograms.
+Doctor: Okay. Arjun, idhar aa mera beta. Aankh khol. Haan acha. Ek dum acha. Ab muh khol. Aaah karo.
+Patient: Karo beta. Doctor uncle ko dikhao.
+Doctor: Throat thoda red hai. Glands bhi thodi swollen hain. Khansi hai?
+Patient: Haan, raat ko zyada thi khansi. Dry cough.
+Doctor: Runny nose bhi?
+Patient: Haan, bohot pani aa raha tha naak se kal. Aaj thoda kum hua.
+Doctor: It's a viral upper respiratory infection. Very common in children this season. Koi antibiotics ki zarurat nahi.
+Patient: Doctor, antibiotic nahi denge?
+Doctor: Nahi, yeh viral hai. Antibiotics viral infections mein kaam nahi karta. Unnecessarily dena sahi nahi hota.
+Patient: Theek hai doctor. Phir kya karna chahiye?
+Doctor: Paracetamol har chhe ghante lete raho. Liquid zyada do — paani, nimbu paani, coconut water. Solid food forcefully mat do, jo khaye khilao. Rest zaroori hai.
+Nurse: Doctor, should I give ORS packet also?
+Doctor: Haan, ORS bhi do. Maa ji, agar fever teen din mein nahi jaata, ya 104 se upar jaye, ya saans lene mein takleef ho, toh immediately wapas aana. Samjhi?
+Patient: Ji doctor, samjha. Ek baat aur — school bhej sakti hun?
+Doctor: Nahi nahi. Abhi teen din ghar par rakho. Dusre bachon mein spread ho sakta hai. Aur Arjun ko bhi rest chahiye.
+Patient: Theek hai doctor. Bahut shukriya.
+Doctor: Welcome. Jaldi theek ho jayega. Khayal rakhna.
