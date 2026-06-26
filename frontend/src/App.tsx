@@ -145,6 +145,14 @@ export default function App() {
           if (selectedHistoryId === activeJobId) {
             fetchConsultationDetail(activeJobId);
           }
+          if (progress.status === 'done') {
+            const link = document.createElement('a');
+            link.href = `/api/consultations/${activeJobId}/audio/full?download=true`;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
         }
       } catch (err) {
         console.error('Error polling job progress:', err);
@@ -171,6 +179,16 @@ export default function App() {
         if (allDone) {
           setActiveBatchJobId(null);
           fetchHistory();
+          
+          const hasSuccess = res.consultations.some((c: any) => c.status === 'done');
+          if (hasSuccess) {
+            const link = document.createElement('a');
+            link.href = `/api/batch/${activeBatchJobId}/download`;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
         }
       } catch (err) {
         console.error('Error polling batch progress:', err);
@@ -288,6 +306,7 @@ export default function App() {
       };
 
       const res = await api.createConsultation(params);
+      setActiveJobId(res.id);
       setSubmitSuccess("Consultation queued! Check the History tab for progress.");
       setScriptText('');
       setFile(null);
@@ -320,8 +339,9 @@ export default function App() {
       };
 
       const res = await api.createBatch(params);
+      setActiveBatchJobId(res.batch_id);
       setSubmitSuccess("Batch job queued! Check the History tab for progress.");
-      setBatchScripts([{ id: 1, name: '', script: '' }]);
+      setBatchScripts([{ id: '1', name: '', script: '' }]);
       fetchHistory();
       setTimeout(() => setSubmitSuccess(null), 5000);
     } catch (err) {
@@ -990,7 +1010,7 @@ export default function App() {
                           <a
                             href={`/api/consultations/${c.id}/audio/full?download=true`}
                             className="bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 p-1.5 rounded transition"
-                            title="Download Audio (WAV)"
+                            title="Download Audio (MP3)"
                           >
                             <Download className="w-3.5 h-3.5" />
                           </a>
@@ -1132,7 +1152,7 @@ export default function App() {
                         className="bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl transition text-xs flex items-center gap-1.5 shadow-md animate-pulseHover"
                       >
                         <Download className="w-4 h-4" />
-                        Download Audio (WAV)
+                        Download Audio (MP3)
                       </a>
                       <a
                         href={`/api/consultations/${selectedHistory.id}/download`}
@@ -1167,7 +1187,7 @@ export default function App() {
                       <a
                         href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
                         className="p-2.5 bg-slate-900 border border-slate-800 hover:text-slate-100 rounded-xl text-slate-400 transition"
-                        title="Download Full WAV"
+                        title="Download Full MP3"
                       >
                         <Download className="w-4 h-4" />
                       </a>
@@ -1214,16 +1234,26 @@ export default function App() {
                                 </span>
 
                                 {utt.status === 'done' && (
-                                  <button
-                                    onClick={() => togglePlayAudio(`/api/consultations/${selectedHistory.id}/utterances/${utt.id}/audio`, utt.id)}
-                                    className="p-1.5 bg-slate-900 border border-slate-800 hover:border-teal-500/20 text-slate-400 hover:text-slate-200 rounded-lg transition"
-                                  >
-                                    {currentlyPlayingId === utt.id ? (
-                                      <Pause className="w-3.5 h-3.5 text-teal-400" />
-                                    ) : (
-                                      <Play className="w-3.5 h-3.5" />
-                                    )}
-                                  </button>
+                                  <>
+                                    <button
+                                      onClick={() => togglePlayAudio(`/api/consultations/${selectedHistory.id}/utterances/${utt.id}/audio`, utt.id)}
+                                      className="p-1.5 bg-slate-900 border border-slate-800 hover:border-teal-500/20 text-slate-400 hover:text-slate-200 rounded-lg transition"
+                                      title="Play Audio"
+                                    >
+                                      {currentlyPlayingId === utt.id ? (
+                                        <Pause className="w-3.5 h-3.5 text-teal-400" />
+                                      ) : (
+                                        <Play className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+                                    <a
+                                      href={`/api/consultations/${selectedHistory.id}/utterances/${utt.id}/audio?download=true`}
+                                      className="p-1.5 bg-slate-900 border border-slate-800 hover:border-teal-500/20 text-slate-400 hover:text-slate-200 rounded-lg transition inline-flex"
+                                      title="Download Utterance (MP3)"
+                                    >
+                                      <Download className="w-3.5 h-3.5" />
+                                    </a>
+                                  </>
                                 )}
                               </div>
                             </div>

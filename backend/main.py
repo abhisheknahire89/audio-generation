@@ -340,7 +340,7 @@ async def get_progress(cid: str):
     return {**progress, "status": c["status"]}
 
 @app.get("/api/consultations/{cid}/utterances/{uid}/audio")
-async def stream_utterance_audio(cid: str, uid: str):
+async def stream_utterance_audio(cid: str, uid: str, download: bool = False):
     utterances = get_utterances(cid)
     utt = next((u for u in utterances if u["id"] == uid), None)
     if not utt:
@@ -349,6 +349,9 @@ async def stream_utterance_audio(cid: str, uid: str):
     if not ap or not Path(ap).exists():
         raise HTTPException(404, "Audio not generated yet")
     media_type = "audio/mpeg" if Path(ap).suffix == ".mp3" else "audio/wav"
+    if download:
+        filename = Path(ap).name
+        return FileResponse(ap, media_type=media_type, filename=filename)
     return FileResponse(ap, media_type=media_type)
 
 @app.get("/api/consultations/{cid}/audio/full")
