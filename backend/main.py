@@ -6,9 +6,11 @@ import json
 import logging
 import os
 import random
+import signal
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from logging.handlers import RotatingFileHandler
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,7 +36,7 @@ from database import (
     update_batch_job,
     update_consultation,
 )
-from job_runner import get_runner, start_runner
+from job_runner import get_runner, start_runner, stop_runner
 from noise_mixer import generate_noise_clips
 from script_parser import detect_language_hint, extract_speakers, parse_script
 from tts_engine import (
@@ -45,18 +47,56 @@ from tts_engine import (
 )
 from zip_builder import build_all_zip, build_consultation_zip
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
+# ─── Logging Setup (Rotating File + Console) ────────────────────────────────
+
+def setup_logging():
+    log_dir = Path("/logs") if os.path.exists("/logs") else Path("logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "opd_audio.log"
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+
+    # Rotating file handler (100 MB per file, keep 5 backups)
+    file_handler = RotatingFileHandler(
+        log_file, maxBytes=100_000_000, backupCount=5
+    )
+    file_formatter = logging.Formatter(
+        '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    )
+    file_handler.setFormatter(file_formatter)
+    root_logger.addHandler(file_handler)
+
+    # Console handler (for docker logs)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(file_formatter)
+    root_logger.addHandler(console_handler)
+
+    logging.info(f"Logging to {log_file} (rotating)")
+
+setup_logging()
 logger = logging.getLogger(__name__)
+
+# ─── Signal Handlers for Graceful Shutdown ──────────────────────────────────
+
+def shutdown_gracefully(signum, frame):
+    logger.info(f"Received signal {signum}, stopping job runner...")
+    runner = get_runner()
+    if runner:
+        stop_runner(runner)
+    logger.info("Shutdown complete. Exiting.")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, shutdown_gracefully)
+signal.signal(signal.SIGINT, shutdown_gracefully)
+
+# ─── Paths ──────────────────────────────────────────────────────────────────
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 OUTPUTS_DIR = DATA_DIR / "outputs"
 UPLOADS_DIR = DATA_DIR / "uploads"
 FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
 
-# Ensure dirs exist
 for d in [DATA_DIR, OUTPUTS_DIR, UPLOADS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
@@ -81,7 +121,6 @@ app.add_middleware(
 if APP_PASSWORD:
     app.add_middleware(BasicAuthMiddleware, password=APP_PASSWORD)
 
-
 # ─── Startup ─────────────────────────────────────────────────────────────────
 
 @app.on_event("startup")
@@ -90,7 +129,6 @@ async def startup():
     generate_noise_clips()
     start_runner()
     logger.info("OPD Audio Generator started")
-
 
 # ─── Pydantic models ──────────────────────────────────────────────────────────
 
@@ -103,12 +141,10 @@ class SpeakerSettings(BaseModel):
     engine: Optional[str] = None
     language: Optional[str] = None
 
-
 class NoiseSettings(BaseModel):
     enabled: bool = False
     types: Dict[str, bool] = {}
     intensity: float = 0.3
-
 
 class GenerateRequest(BaseModel):
     name: str
@@ -120,16 +156,14 @@ class GenerateRequest(BaseModel):
     noise_settings: Dict[str, Any] = {}
     randomize: bool = False
 
-
 class BatchRequest(BaseModel):
     name: str
-    scripts: List[Dict[str, Any]]  # [{name, script, language, ...}, ...]
+    scripts: List[Dict[str, Any]]
     engine: str = "parler"
     seed: Optional[int] = None
     speaker_settings: Dict[str, Dict[str, Any]] = {}
     noise_settings: Dict[str, Any] = {}
     randomize: bool = False
-
 
 # ─── Health ───────────────────────────────────────────────────────────────────
 
@@ -144,15 +178,13 @@ async def health():
         "current_job": runner.current_job if runner else None,
     }
 
-
-# ─── Script parsing (preview) ─────────────────────────────────────────────────
+# ─── Script parsing ──────────────────────────────────────────────────────────
 
 @app.post("/api/parse")
 async def parse_script_endpoint(
     file: Optional[UploadFile] = File(None),
     script: Optional[str] = Form(None),
 ):
-    """Parse a script and return detected speakers + turns (preview only, no generation)."""
     if file:
         content = await file.read()
         filename = file.filename or "script.txt"
@@ -171,7 +203,6 @@ async def parse_script_endpoint(
         "total_turns": len(turns),
     }
 
-
 # ─── Consultations ────────────────────────────────────────────────────────────
 
 @app.post("/api/consultations")
@@ -179,13 +210,11 @@ async def create(
     file: Optional[UploadFile] = File(None),
     request_json: Optional[str] = Form(None),
 ):
-    """Submit a consultation script for generation."""
     if request_json:
         req = GenerateRequest(**json.loads(request_json))
     else:
         raise HTTPException(400, "Provide request_json form field")
 
-    # Parse script
     if file:
         content = await file.read()
         filename = file.filename or "script.txt"
@@ -206,22 +235,15 @@ async def create(
     seed = req.seed if req.seed is not None else random.randint(1, 999999)
     speakers = extract_speakers(turns)
 
-    # Determine noise settings
     noise_settings = req.noise_settings
     if getattr(req, "randomize", False):
-        # Randomize noise settings
         noise_keys = ["hospital_ambience", "fan", "ac", "keyboard", "phone", "cough", "door", "chatter", "opd_mix"]
         num_noises = random.randint(1, 3)
         selected_noises = random.sample(noise_keys, num_noises)
         types = {k: (k in selected_noises) for k in noise_keys}
         intensity = round(random.uniform(0.15, 0.40), 2)
-        noise_settings = {
-            "enabled": True,
-            "types": types,
-            "intensity": intensity
-        }
+        noise_settings = {"enabled": True, "types": types, "intensity": intensity}
 
-    # Build per-speaker settings with defaults
     speaker_settings = {}
     for sp in speakers:
         user_sp = req.speaker_settings.get(sp, {})
@@ -252,10 +274,6 @@ async def create(
             "voice_description": vdesc,
         }
 
-    # Create output dir
-    cid = None  # will be set after DB insert
-    output_dir_placeholder = str(OUTPUTS_DIR / "PLACEHOLDER")
-
     cid = create_consultation(
         name=req.name,
         raw_script=raw_script,
@@ -265,14 +283,12 @@ async def create(
         seed=seed,
         noise_settings=noise_settings,
         speaker_settings=speaker_settings,
-        output_dir=str(OUTPUTS_DIR / cid) if cid else None,
+        output_dir=str(OUTPUTS_DIR / "PLACEHOLDER"),
     )
-
     output_dir = OUTPUTS_DIR / cid
     output_dir.mkdir(parents=True, exist_ok=True)
     update_consultation(cid, output_dir=str(output_dir), total_utterances=len(turns))
 
-    # Create utterances in DB
     for i, turn in enumerate(turns):
         sp = turn["speaker"]
         sp_cfg = speaker_settings.get(sp, {})
@@ -290,11 +306,9 @@ async def create(
     logger.info(f"Created consultation {cid[:8]}: {len(turns)} utterances")
     return {"id": cid, "name": req.name, "total_utterances": len(turns), "seed": seed}
 
-
 @app.get("/api/consultations")
 async def list_all():
     return list_consultations()
-
 
 @app.get("/api/consultations/{cid}")
 async def get_one(cid: str):
@@ -304,20 +318,17 @@ async def get_one(cid: str):
     utterances = get_utterances(cid)
     return {**c, "utterances": utterances}
 
-
 @app.delete("/api/consultations/{cid}")
 async def delete_one(cid: str):
     c = get_consultation(cid)
     if not c:
         raise HTTPException(404, "Not found")
-    # Remove output files
     output_dir = Path(c.get("output_dir") or OUTPUTS_DIR / cid)
     if output_dir.exists():
         import shutil
         shutil.rmtree(output_dir, ignore_errors=True)
     delete_consultation(cid)
     return {"deleted": cid}
-
 
 @app.get("/api/consultations/{cid}/progress")
 async def get_progress(cid: str):
@@ -328,10 +339,8 @@ async def get_progress(cid: str):
     progress = runner.get_progress(cid) if runner else {}
     return {**progress, "status": c["status"]}
 
-
 @app.get("/api/consultations/{cid}/utterances/{uid}/audio")
 async def stream_utterance_audio(cid: str, uid: str):
-    from database import update_utterance as _upd
     utterances = get_utterances(cid)
     utt = next((u for u in utterances if u["id"] == uid), None)
     if not utt:
@@ -349,11 +358,9 @@ async def stream_full_audio(cid: str, download: bool = False):
         raise HTTPException(404, "Not found")
     full_path = Path(c.get("output_dir", OUTPUTS_DIR / cid)) / "full_consultation.mp3"
     if not full_path.exists():
-        # Fallback to .wav for backwards compatibility
         full_path = full_path.with_suffix(".wav")
     if not full_path.exists():
         raise HTTPException(404, "Full audio not ready yet")
-        
     media_type = "audio/mpeg" if full_path.suffix == ".mp3" else "audio/wav"
     if download:
         name = c.get("name", "consultation").replace(" ", "_")
@@ -363,8 +370,6 @@ async def stream_full_audio(cid: str, download: bool = False):
             filename=f"{name}{full_path.suffix}"
         )
     return FileResponse(str(full_path), media_type=media_type)
-
-
 
 @app.get("/api/consultations/{cid}/download")
 async def download_zip(cid: str):
@@ -380,7 +385,6 @@ async def download_zip(cid: str):
         media_type="application/zip",
         headers={"Content-Disposition": f'attachment; filename="{name}.zip"'},
     )
-
 
 @app.get("/api/download-all")
 async def download_all_zip():
@@ -400,7 +404,6 @@ async def download_all_zip():
         headers={"Content-Disposition": 'attachment; filename="all_consultations.zip"'},
     )
 
-
 # ─── Batch ────────────────────────────────────────────────────────────────────
 
 @app.post("/api/batch")
@@ -417,8 +420,6 @@ async def create_batch(req: BatchRequest):
             continue
 
         speakers = extract_speakers(turns)
-        
-        # Determine noise settings per script in batch
         noise_settings = req.noise_settings
         if getattr(req, "randomize", False):
             noise_keys = ["hospital_ambience", "fan", "ac", "keyboard", "phone", "cough", "door", "chatter", "opd_mix"]
@@ -426,11 +427,7 @@ async def create_batch(req: BatchRequest):
             selected_noises = random.sample(noise_keys, num_noises)
             types = {k: (k in selected_noises) for k in noise_keys}
             intensity = round(random.uniform(0.15, 0.40), 2)
-            noise_settings = {
-                "enabled": True,
-                "types": types,
-                "intensity": intensity
-            }
+            noise_settings = {"enabled": True, "types": types, "intensity": intensity}
 
         speaker_settings = {}
         for sp in speakers:
@@ -453,7 +450,6 @@ async def create_batch(req: BatchRequest):
                 engine = user_sp.get("engine") or req.engine
                 lang = user_sp.get("language") or language
                 vdesc = user_sp.get("voice_description") or get_voice_profile(sp, gender, age, lang)
-                
             speaker_settings[sp] = {"gender": gender, "age": age, "engine": engine, "language": lang, "voice_description": vdesc}
 
         cid = create_consultation(
@@ -477,7 +473,6 @@ async def create_batch(req: BatchRequest):
             )
 
         consultation_ids.append(cid)
-        # Update batch_id for each
         update_consultation(cid, batch_id="PENDING")
 
     bid = create_batch_job(req.name, consultation_ids)
@@ -487,11 +482,9 @@ async def create_batch(req: BatchRequest):
     logger.info(f"Created batch {bid[:8]}: {len(consultation_ids)} consultations")
     return {"batch_id": bid, "consultation_ids": consultation_ids, "total": len(consultation_ids)}
 
-
 @app.get("/api/batch")
 async def list_batches():
     return list_batch_jobs()
-
 
 @app.get("/api/batch/{bid}")
 async def get_batch(bid: str):
@@ -500,7 +493,6 @@ async def get_batch(bid: str):
         raise HTTPException(404, "Not found")
     consultations = list_consultations(batch_id=bid)
     return {**b, "consultations": consultations}
-
 
 @app.get("/api/batch/{bid}/download")
 async def download_batch_zip(bid: str):
@@ -521,13 +513,11 @@ async def download_batch_zip(bid: str):
         headers={"Content-Disposition": f'attachment; filename="{name}.zip"'},
     )
 
-
 # ─── Voice profiles ───────────────────────────────────────────────────────────
 
 @app.get("/api/voice-profiles")
 async def get_voice_profiles():
     return SPEAKER_VOICE_PROFILES
-
 
 @app.get("/api/noise-types")
 async def get_noise_types():
@@ -543,7 +533,6 @@ async def get_noise_types():
         "opd_mix": "Real Indian OPD Mix",
     }
 
-
 # ─── Serve React frontend ─────────────────────────────────────────────────────
 
 if FRONTEND_DIST.exists():
@@ -552,7 +541,6 @@ else:
     @app.get("/")
     async def root():
         return {"message": "OPD Audio Generator API. Frontend not built yet. Run: cd frontend && npm run build"}
-
 
 if __name__ == "__main__":
     import uvicorn

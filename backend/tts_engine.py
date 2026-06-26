@@ -220,8 +220,12 @@ class IndicParlerTTS:
         from parler_tts import ParlerTTSForConditionalGeneration
         from transformers import AutoTokenizer
 
-        # Use float32 on MPS (float16 not fully supported)
-        dtype = torch.float32
+        # Enable cuDNN benchmark for faster convolution
+        if self.device == "cuda":
+            torch.backends.cudnn.benchmark = True
+
+        # Use FP16 on CUDA for speed
+        dtype = torch.float16 if self.device == "cuda" else torch.float32
         hf_token = os.environ.get("HF_TOKEN")
         self.model = ParlerTTSForConditionalGeneration.from_pretrained(
             "ai4bharat/indic-parler-tts",
@@ -235,7 +239,7 @@ class IndicParlerTTS:
         )
         self.sample_rate = self.model.config.sampling_rate
         self.loaded = True
-        logger.info(f"Indic-Parler-TTS loaded in {time.time()-t0:.1f}s on {self.device}")
+        logger.info(f"Indic-Parler-TTS loaded in {time.time()-t0:.1f}s on {self.device} with dtype={dtype}")
 
     def generate(
         self,
@@ -509,6 +513,119 @@ def generate_speech(
         sf.write(str(output_path), final_audio, sample_rate)
         
     return final_audio, sample_rate
+
+
+def generate_batch_speech(
+    texts: List[str],
+    engine: str = "parler",
+    speaker: str = "Doctor",
+    gender: str = "male",
+    age: str = "adult",
+    language: str = "hi",
+    voice_description: Optional[str] = None,
+    seeds: Optional[List[int]] = None,
+) -> Tuple[List[np.ndarray], int]:
+    """
+    Generate multiple utterances in a single batch (only Parler supports this).
+    Returns (list_of_audio_arrays, sample_rate).
+    """
+    import re
+    from transliteration import transliterate_hinglish_sentence
+
+    # Transliterate all texts
+    if language in ("hi", "hi_en", "mr_en", "gu", "gu_en", "te", "te_en"):
+        texts = [transliterate_hinglish_sentence(t, language) for t in texts]
+
+    # Chunk each text (max 35 words)
+    chunked_texts = []
+    for t in texts:
+        # Use the same chunking logic as in generate_speech
+        sentences = re.split(r'([.?!।|]+)', t)
+        chunks = []
+        current = ""
+        for i in range(0, len(sentences)-1, 2):
+            s = (sentences[i] + sentences[i+1]).strip()
+            if not s: continue
+            if len(current.split()) + len(s.split()) > 35 and current:
+                chunks.append(current.strip())
+                current = s
+            else:
+                current += " " + s
+        if sentences[-1].strip():
+            s = sentences[-1].strip()
+            if len(current.split()) + len(s.split()) > 35 and current:
+                chunks.append(current.strip())
+                chunks.append(s)
+            else:
+                current += " " + s
+        if current.strip():
+            chunks.append(current.strip())
+        if not chunks and t.strip():
+            chunks = [t]
+        chunked_texts.append(chunks)
+
+    # Flatten all chunks (we will reassemble later)
+    # For batch generation, we need a flat list of all chunks
+    flat_chunks = []
+    chunk_indices = []  # maps flat index back to original text index
+    for i, chunks in enumerate(chunked_texts):
+        for chunk in chunks:
+            flat_chunks.append(chunk)
+            chunk_indices.append(i)
+
+    sample_rate = 44100 if engine == "parler" else 24000
+
+    if engine == "parler":
+        desc = voice_description or get_voice_profile(speaker, gender, age, language)
+        eng = IndicParlerTTS.get_instance()
+        sample_rate = eng.sample_rate or 44100
+
+        # Generate all chunks in one batch (may be large, we'll process in sub-batches)
+        all_audios = []
+        batch_size = 8
+        for i in range(0, len(flat_chunks), batch_size):
+            batch_chunks = flat_chunks[i:i+batch_size]
+            logger.info(f"Generating Parler batch of {len(batch_chunks)} chunks")
+            # Seeds: if provided, we use a deterministic seed per chunk
+            batch_seeds = None
+            if seeds:
+                # Map seed to chunk index
+                batch_seeds = [seeds[chunk_indices[i+j]] for j in range(len(batch_chunks))]
+            audios = eng.generate_batch(batch_chunks, desc, seed=batch_seeds[0] if batch_seeds else None)
+            all_audios.extend(audios)
+
+        # Reconstruct per-original-text audio
+        result_audios = [[] for _ in range(len(texts))]
+        for idx, audio in zip(chunk_indices, all_audios):
+            result_audios[idx].append(audio)
+
+        # Concatenate chunks with silence
+        final_audios = []
+        for audios_list in result_audios:
+            combined = []
+            for i, a in enumerate(audios_list):
+                combined.append(a)
+                if i < len(audios_list) - 1:
+                    combined.append(np.zeros(int(0.3 * sample_rate), dtype=np.float32))
+            if combined:
+                final_audios.append(np.concatenate(combined))
+            else:
+                final_audios.append(np.zeros(sample_rate, dtype=np.float32))
+
+        return final_audios, sample_rate
+
+    else:
+        # IndicF5 does not support batch generation; fallback to sequential
+        logger.warning("IndicF5 does not support batch generation, falling back to sequential")
+        audios = []
+        for t, seed in zip(texts, seeds or [None]*len(texts)):
+            a, sr = generate_speech(
+                text=t, engine=engine, speaker=speaker, gender=gender, age=age,
+                language=language, voice_description=voice_description,
+                seed=seed, output_path=None
+            )
+            audios.append(a)
+        return audios, sample_rate
 
 
 def check_engine_availability() -> dict:
