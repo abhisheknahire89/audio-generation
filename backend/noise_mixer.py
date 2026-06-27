@@ -215,10 +215,13 @@ def mix_noise(
     if max_noise > 0:
         noise_mix = noise_mix / max_noise
 
-    # Mix: speech at 1.0, noise at intensity
+    # Mix: speech and noise at intensity
     mixed = speech + noise_mix * intensity
-    # Clip to [-1, 1]
-    mixed = np.clip(mixed, -1.0, 1.0)
+    
+    # Normalize the final mix to 0.95 to prevent any clipping distortion
+    max_mixed = np.abs(mixed).max()
+    if max_mixed > 0:
+        mixed = (mixed / max_mixed) * 0.95
 
     sf.write(str(output_path), mixed, sr)
     logger.info(f"Mixed noise ({active_types}) at intensity={intensity} -> {output_path}")
