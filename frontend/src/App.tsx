@@ -1151,7 +1151,7 @@ export default function App() {
                     </div>
 
                     <div className="flex gap-2">
-                      {selectedHistory.status === 'done' && (
+                      {selectedHistory.status === 'done' ? (
                         <a
                           href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
                           className="bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl transition text-xs flex items-center gap-1.5 shadow-md animate-pulseHover"
@@ -1163,6 +1163,14 @@ export default function App() {
                           <Download className="w-4 h-4" />
                           Download Audio (MP3)
                         </a>
+                      ) : (
+                        <button
+                          disabled
+                          className="bg-slate-800 text-slate-500 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-not-allowed"
+                        >
+                          <Download className="w-4 h-4 opacity-50" />
+                          {selectedHistory.status === 'error' ? 'Generation Failed' : 'Generating Audio...'}
+                        </button>
                       )}
                       <a
                         href={`/api/consultations/${selectedHistory.id}/download`}
@@ -1194,7 +1202,7 @@ export default function App() {
                           <p className="text-xs text-slate-500">Concatenated speech turns with clinic noise layered</p>
                         </div>
                       </div>
-                      {selectedHistory.status === 'done' && (
+                      {selectedHistory.status === 'done' ? (
                         <a
                           href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
                           className="p-2.5 bg-slate-900 border border-slate-800 hover:text-slate-100 rounded-xl text-slate-400 transition"
@@ -1206,6 +1214,14 @@ export default function App() {
                         >
                           <Download className="w-4 h-4" />
                         </a>
+                      ) : (
+                        <button
+                          disabled
+                          className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-600 cursor-not-allowed"
+                          title={selectedHistory.status === 'error' ? 'Generation Failed' : 'Generating...'}
+                        >
+                          <Download className="w-4 h-4 opacity-50" />
+                        </button>
                       )}
                     </div>
                   )}
@@ -1257,7 +1273,7 @@ export default function App() {
                                   >
                                     {currentlyPlayingId === utt.id ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                                   </button>
-                                  {utt.status === 'done' && (
+                                  {utt.status === 'done' ? (
                                     <a
                                       href={`/api/consultations/${selectedHistory.id}/utterances/${utt.id}/audio?download=true`}
                                       className="p-1.5 bg-slate-900 border border-slate-800 hover:border-teal-500/20 text-slate-400 hover:text-slate-200 rounded-lg transition inline-flex"
@@ -1269,6 +1285,14 @@ export default function App() {
                                     >
                                       <Download className="w-3.5 h-3.5" />
                                     </a>
+                                  ) : (
+                                    <button
+                                      disabled
+                                      className="p-1.5 bg-slate-900 border border-slate-800 text-slate-600 rounded-lg inline-flex cursor-not-allowed"
+                                      title={utt.status === 'error' ? 'Failed' : 'Generating...'}
+                                    >
+                                      <Download className="w-3.5 h-3.5 opacity-50" />
+                                    </button>
                                   )}
                                 </div>
                               </div>
