@@ -1011,6 +1011,8 @@ export default function App() {
                             href={`/api/consultations/${c.id}/audio/full?download=true`}
                             className="bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 p-1.5 rounded transition"
                             title="Download Audio (MP3)"
+                            download
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <Download className="w-3.5 h-3.5" />
                           </a>
@@ -1150,6 +1152,8 @@ export default function App() {
                       <a
                         href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
                         className="bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl transition text-xs flex items-center gap-1.5 shadow-md animate-pulseHover"
+                        download
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <Download className="w-4 h-4" />
                         Download Audio (MP3)
@@ -1188,6 +1192,8 @@ export default function App() {
                         href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
                         className="p-2.5 bg-slate-900 border border-slate-800 hover:text-slate-100 rounded-xl text-slate-400 transition"
                         title="Download Full MP3"
+                        download
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <Download className="w-4 h-4" />
                       </a>
@@ -1250,6 +1256,8 @@ export default function App() {
                                       href={`/api/consultations/${selectedHistory.id}/utterances/${utt.id}/audio?download=true`}
                                       className="p-1.5 bg-slate-900 border border-slate-800 hover:border-teal-500/20 text-slate-400 hover:text-slate-200 rounded-lg transition inline-flex"
                                       title="Download Utterance (MP3)"
+                                      download
+                                      onClick={(e) => e.stopPropagation()}
                                     >
                                       <Download className="w-3.5 h-3.5" />
                                     </a>
