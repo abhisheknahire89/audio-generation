@@ -265,10 +265,13 @@ class IndicParlerTTS:
             )
 
         audio = generation.cpu().numpy().squeeze()
-        if audio.dtype != np.float32:
-            audio = audio.astype(np.float32)
-        # Normalize
+        audio = audio.astype(np.float32)
+        # Parler-TTS outputs values in the int16 range as float; rescale if needed
         max_val = np.abs(audio).max()
+        if max_val > 1.0:
+            audio = audio / 32768.0
+            max_val = np.abs(audio).max()
+        # Normalize to 0.9 to give headroom
         if max_val > 0:
             audio = audio / max_val * 0.9
 
@@ -302,12 +305,19 @@ class IndicParlerTTS:
         audios = generation.cpu().numpy()
         results = []
         for i in range(audios.shape[0]):
-            audio = audios[i].squeeze()
-            if audio.dtype != np.float32:
-                audio = audio.astype(np.float32)
+            audio = audios[i].squeeze().astype(np.float32)
+            # Parler-TTS may output int16-range floats — rescale if needed
             max_val = np.abs(audio).max()
+            if max_val > 1.0:
+                audio = audio / 32768.0
+                max_val = np.abs(audio).max()
+            # Normalize to 0.9
             if max_val > 0:
                 audio = audio / max_val * 0.9
+            # Trim trailing silence (padding artifact from batch generation)
+            non_silent = np.where(np.abs(audio) > 0.001)[0]
+            if len(non_silent) > 0:
+                audio = audio[:non_silent[-1] + int(0.1 * self.sample_rate)]
             results.append(audio)
         return results
 

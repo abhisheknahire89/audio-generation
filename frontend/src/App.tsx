@@ -601,10 +601,16 @@ export default function App() {
               {showAdvanced && (
                 <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-200">
-                      <Volume2 className="w-5 h-5 text-teal-400" />
-                      Clinic Ambient Noise
-                    </h2>
+                    <div>
+                      <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-200">
+                        <Volume2 className="w-5 h-5 text-teal-400" />
+                        Clinic Ambient Noise
+                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                          OFF by default
+                        </span>
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-1">Enable only after verifying clean voice quality first.</p>
+                    </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -807,7 +813,13 @@ export default function App() {
                       </div>
                       <div>
                         <span className="text-slate-400 font-medium">Ambient Noise:</span>{' '}
-                        <span className="text-slate-200">Clinic mix (random types and intensity)</span>
+                        {noiseSettings.enabled ? (
+                          <span className="text-amber-400">
+                            Enabled — {Object.entries(noiseSettings.types).filter(([,v]) => v).map(([k]) => k).join(', ') || 'No types selected'} @ {Math.round(noiseSettings.intensity * 100)}%
+                          </span>
+                        ) : (
+                          <span className="text-emerald-400 font-semibold">OFF — Clean voice only ✓</span>
+                        )}
                       </div>
                     </div>
 
