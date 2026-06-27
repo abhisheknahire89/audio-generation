@@ -63,7 +63,7 @@ export default function App() {
       chatter: false,
       opd_mix: false
     },
-    intensity: 0.15
+    intensity: 0.08
   });
 
   // Noise display names
