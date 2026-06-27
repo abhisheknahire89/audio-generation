@@ -1151,17 +1151,19 @@ export default function App() {
                     </div>
 
                     <div className="flex gap-2">
-                      <a
-                        href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
-                        className="bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl transition text-xs flex items-center gap-1.5 shadow-md animate-pulseHover"
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Download className="w-4 h-4" />
-                        Download Audio (MP3)
-                      </a>
+                      {selectedHistory.status === 'done' && (
+                        <a
+                          href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
+                          className="bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl transition text-xs flex items-center gap-1.5 shadow-md animate-pulseHover"
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Download className="w-4 h-4" />
+                          Download Audio (MP3)
+                        </a>
+                      )}
                       <a
                         href={`/api/consultations/${selectedHistory.id}/download`}
                         className="bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-400 hover:text-slate-200 font-semibold px-3 py-2 rounded-xl transition text-xs flex items-center gap-1.5 shadow-md"
@@ -1192,17 +1194,19 @@ export default function App() {
                           <p className="text-xs text-slate-500">Concatenated speech turns with clinic noise layered</p>
                         </div>
                       </div>
-                      <a
-                        href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
-                        className="p-2.5 bg-slate-900 border border-slate-800 hover:text-slate-100 rounded-xl text-slate-400 transition"
-                        title="Download Full MP3"
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
+                      {selectedHistory.status === 'done' && (
+                        <a
+                          href={`/api/consultations/${selectedHistory.id}/audio/full?download=true`}
+                          className="p-2.5 bg-slate-900 border border-slate-800 hover:text-slate-100 rounded-xl text-slate-400 transition"
+                          title="Download Full MP3"
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      )}
                     </div>
                   )}
 
@@ -1245,19 +1249,15 @@ export default function App() {
                                   {utt.status}
                                 </span>
 
-                                {utt.status === 'done' && (
-                                  <>
-                                    <button
-                                      onClick={() => togglePlayAudio(`/api/consultations/${selectedHistory.id}/utterances/${utt.id}/audio`, utt.id)}
-                                      className="p-1.5 bg-slate-900 border border-slate-800 hover:border-teal-500/20 text-slate-400 hover:text-slate-200 rounded-lg transition"
-                                      title="Play Audio"
-                                    >
-                                      {currentlyPlayingId === utt.id ? (
-                                        <Pause className="w-3.5 h-3.5 text-teal-400" />
-                                      ) : (
-                                        <Play className="w-3.5 h-3.5" />
-                                      )}
-                                    </button>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => togglePlayAudio(`/api/consultations/${selectedHistory.id}/utterances/${utt.id}/audio`, utt.id)}
+                                    className="p-1.5 bg-slate-900 border border-slate-800 hover:border-teal-500/20 text-slate-400 hover:text-slate-200 rounded-lg transition"
+                                    title="Play Audio"
+                                  >
+                                    {currentlyPlayingId === utt.id ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                                  </button>
+                                  {utt.status === 'done' && (
                                     <a
                                       href={`/api/consultations/${selectedHistory.id}/utterances/${utt.id}/audio?download=true`}
                                       className="p-1.5 bg-slate-900 border border-slate-800 hover:border-teal-500/20 text-slate-400 hover:text-slate-200 rounded-lg transition inline-flex"
@@ -1269,8 +1269,8 @@ export default function App() {
                                     >
                                       <Download className="w-3.5 h-3.5" />
                                     </a>
-                                  </>
-                                )}
+                                  )}
+                                </div>
                               </div>
                             </div>
 
